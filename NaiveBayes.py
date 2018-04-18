@@ -23,8 +23,8 @@ class NaiveBayesSpam(object):
         self.prob_spam = {}
         self.count_ham = 0
         self.count_spam = 0
-        self.count_bigham = 0
-        self.count_bigspam = 0
+        self.count_biham = 0
+        self.count_bispam = 0
 
     def taglize(self):
         index_f = open(self.index_path, 'r')
@@ -64,7 +64,7 @@ class NaiveBayesSpam(object):
                                 bigram = tuple(
                                     [tokens[0][i], tokens[0][i + 1]])
                                 self.v_biham[bigram] += 1
-                                self.count_bigham += 1
+                                self.count_biham += 1
                     else:
                         self.num_spam += 1
                         sum_len = len(tokens[0])
@@ -76,7 +76,7 @@ class NaiveBayesSpam(object):
                                 bigram = tuple(
                                     [tokens[0][i], tokens[0][i + 1]])
                                 self.v_bispam[bigram] += 1
-                                self.count_bigspam += 1
+                                self.count_bispam += 1
 
 
 def main():
