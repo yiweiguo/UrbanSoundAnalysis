@@ -36,6 +36,13 @@ class NaiveBayesSpam(object):
         index_f.close()
         return corpus
 
+    def testlize(self, test_dir):
+        index_f = open(test_dir, 'r')
+        corpus = [tuple((line.split('\n'))[0].split(' ..'))
+                  for line in index_f]
+        index_f.close()
+        return corpus
+
     def tokenlize(self, email_path):
         tokens = []
         email_f = open(email_path, 'r')
@@ -56,13 +63,14 @@ class NaiveBayesSpam(object):
             if os.path.exists(head + email):
                 tokens = self.tokenlize(head + email)
                 if tokens[1]:
-                    if tag == 'ham':
+                    if tag.lower() == 'ham':
                         self.num_ham += 1
                         sum_len = len(tokens[0])
                         for i in range(sum_len):
                             word = tokens[0][i]
                             self.count_ham += 1
                             self.v_uniham[word] += 1
+                            self.c_ham[len(word)] += 1
                             if i != sum_len - 1:
                                 bigram = tuple(
                                     [tokens[0][i], tokens[0][i + 1]])
@@ -74,6 +82,7 @@ class NaiveBayesSpam(object):
                             word = tokens[0][i]
                             self.count_spam += 1
                             self.v_unispam[word] += 1
+                            self.c_spam[len(word)] += 1
                             if i != sum_len - 1:
                                 bigram = tuple(
                                     [tokens[0][i], tokens[0][i + 1]])
@@ -96,10 +105,20 @@ class NaiveBayesSpam(object):
         for bigram in self.v_bispam.keys():
             self.prob_bispam[bigram] = math.log(
                 self.v_bispam[bigram] * 1.0 / self.v_bispam[bigram])
+        for length in self.c_ham.keys():
+            self.prob_cham[length] = math.log(
+                (self.c_ham[length] + self.sm_ham) / (self.count_ham + self.sm_ham * (len(self.c_ham) + 1)))
+        for length in self.c_spam.keys():
+            self.prob_cspam[length] = math.log((self.c_spam[length] + self.sm_spam) / (
+                self.count_spam + self.sm_spam * (len(self.c_spam) + 1)))
         self.prob_ham['<UNK>'] = math.log(
             (self.sm_ham) / (self.count_ham + self.sm_ham * (len(self.v_uniham) + 1)))
         self.prob_spam['<UNK>'] = math.log(
             (self.sm_spam) / (self.count_spam + self.sm_spam * (len(self.v_unispam) + 1)))
+        self.prob_biham['<UNK>'] = math.log(
+            (self.sm_ham) / (self.count_ham + self.sm_ham * (len(self.v_biham) + 1)))
+        self.prob_bispam['<UNK>'] = math.log(
+            (self.sm_spam) / (self.count_spam + self.sm_spam * (len(self.v_bispam) + 1)))
         self.prob_cham['<UNK>'] = math.log(
             (self.sm_ham) / (self.count_ham + self.sm_ham * (len(self.c_ham) + 1)))
         self.prob_cspam['<UNK>'] = math.log(
@@ -127,11 +146,11 @@ class NaiveBayesSpam(object):
                         if bigram in self.v_biham:
                             mail_ham += self.prob_biham[bigram]
                         else:
-                            mail_ham += self.prob_ham['<UNK>']
+                            mail_ham += self.prob_biham['<UNK>']
                         if bigram in self.v_bispam:
                             mail_spam += self.prob_bispam[bigram]
                         else:
-                            mail_spam += self.prob_spam['<UNK>']
+                            mail_spam += self.prob_bispam['<UNK>']
                     if len(word) in self.c_ham:
                         mail_ham += self.prob_cham[len(word)]
                     else:
@@ -141,23 +160,44 @@ class NaiveBayesSpam(object):
                     else:
                         mail_spam += self.prob_cspam['<UNK>']
                 if mail_ham > mail_spam:
-                    return True
-                return False
+                    return (True, True)
+                return (True, False)
             else:
-                print("Can't decode!")
-                return False
+                return (False, False)
         else:
-            print('File not exist!')
-            return False
+            return (False, False)
 
 
 def main():
     head = 'trec/trec07p'
-    level = 'full'
-    nbs = NaiveBayesSpam(head + '/' + level + '/indexp')
+    level = 'partial'
+    nbs = NaiveBayesSpam(head + '/' + level + '/index1000')
     nbs.prepare(head, nbs.taglize())
     nbs.train()
-    print(nbs.prob_ham)
+
+    while True:
+        test_head = input('Input test head:')
+        if test_head == 'q':
+            return
+        test_level = input('Input test level:')
+        print('Testing...\n')
+        cases = nbs.testlize(test_head + '/' + test_level + '/index')
+        total = 0
+        accurate = 0
+        error = 0
+        for case in cases:
+            res = nbs.classification(test_head + case[1])
+            if res[0]:
+                total += 1
+                if (res[1] == True and (case[0]).lower() == 'ham') or (res[1] == False and (case[0]).lower() == 'spam'):
+                    accurate += 1
+                else:
+                    error += 1
+        acc_rate = float(accurate / total * 100)
+        err_rate = float(error / total * 100)
+        print('Tested ' + str(total) + ' cases.')
+        print('Test result: accuracy = ' + str(acc_rate) + '%')
+        print('Test result: error rate = ' + str(err_rate) + '%')
 
 
 if __name__ == '__main__':
