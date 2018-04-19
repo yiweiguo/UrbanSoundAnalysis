@@ -80,7 +80,7 @@ class Features:
                                     [tokens[0][i], tokens[0][i + 1]])
                                 self.v_bispam[bigram] += 1
 
-    def train(self):
+    def train_log_prob(self):
         self.p_ham = float(self.num_ham / (self.num_ham + self.num_spam))
         self.p_spam = 1.0 - self.p_ham
         self.p_ham = math.log(self.p_ham)

@@ -1,6 +1,4 @@
 import os
-import sys
-sys.path.append(r'\Spam\Spam')
 from FeatureLoading import Features
 
 
@@ -65,7 +63,7 @@ def main():
     level = 'partial'
     features = Features(head + '/' + level + '/index1000')
     features.prepare(head, features.taglize())
-    features.train()
+    features.train_log_prob()
     nbs = NaiveBayesSpam(features)
 
     while True:
