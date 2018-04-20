@@ -49,7 +49,7 @@ class NaiveBayesSpam:
                         mail_spam += self.features.prob_cspam[len(word)]
                     else:
                         mail_spam += self.features.prob_cspam['<UNK>']
-                if mail_ham > mail_spam:
+                if mail_ham - 30000 > mail_spam:
                     return (True, True)
                 return (True, False)
             else:
@@ -67,10 +67,12 @@ def main():
     nbs = NaiveBayesSpam(features)
 
     while True:
-        test_head = input('Input test head:')
+        #test_head = input('Input test head:')
+        test_head = 'trec/trec07p'
         if test_head == 'q':
             return
-        test_level = input('Input test level:')
+        #test_level = input('Input test level:')
+        test_level = 'full'
         print('Testing...\n')
         cases = nbs.testlize(test_head + '/' + test_level + '/index')
         total = 0
@@ -93,9 +95,20 @@ def main():
                     FP += 1
                 elif res[1] == False and (case[0]).lower() == 'ham':
                     FN += 1
+                if total % 100 == 0:
+                    print(total)
+                if total > 16000:
+                    break
         acc_rate = float(accurate / total * 100)
+        recall = TP / (TP + FN)
+        precision = TP / (TP + FP)
+        f1 = 2 * recall * precision / (recall + precision)
         print('Tested ' + str(total) + ' cases.')
         print('Test result: accuracy = ' + str(acc_rate) + '%')
+        print('             precision = ' + str(precision))
+        print('             recall = ' + str(recall))
+        print('             f1 = ' + str(f1))
+        break
 
 
 if __name__ == '__main__':
