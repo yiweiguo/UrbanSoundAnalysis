@@ -37,7 +37,10 @@ class NeuralNetwork(object):
                 test_class_vector = np.hstack([test_class_vector, 1])
             else:
                 test_class_vector = np.hstack([test_class_vector, 0])
-            email_path = super_path + path
+            if super_path == "trec/train":
+                email_path = path
+            else:
+                email_path = super_path + path
             if os.path.exists(email_path):
                 tokens = self.features.tokenlize(email_path)
                 if tokens[1]:
@@ -84,7 +87,7 @@ def main():
         key_string = "String" + str(ind)
         columns.append(tf.feature_column.numeric_column(key=key_string))
     classifier = tf.estimator.DNNClassifier(feature_columns=columns,
-                                                 hidden_units=[10, 10], n_classes=2)
+                                                 hidden_units=[2000, 500], n_classes=2)
     #print(len(columns))
     #print(features.label_vector)
     classifier.train(input_fn=lambda:DNN_input_fn(features.feature_vector, features.label_vector, 100), steps=1000)

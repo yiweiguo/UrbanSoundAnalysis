@@ -1,5 +1,6 @@
 import os
 from FeatureLoading import Features
+#import Features
 
 
 class NaiveBayesSpam:
@@ -17,6 +18,8 @@ class NaiveBayesSpam:
     def classification(self, email_path):
         mail_ham = self.features.p_ham
         mail_spam = self.features.p_spam
+        if email_path[0:11] == "trec/train":
+            email_path = email_path[12:]
         if os.path.exists(email_path):
             tokens = self.features.tokenlize(email_path)
             if tokens[1]:
@@ -49,7 +52,7 @@ class NaiveBayesSpam:
                         mail_spam += self.features.prob_cspam[len(word)]
                     else:
                         mail_spam += self.features.prob_cspam['<UNK>']
-                if mail_ham - 30000 > mail_spam:
+                if mail_ham > mail_spam:
                     return (True, True)
                 return (True, False)
             else:
@@ -67,14 +70,13 @@ def main():
     nbs = NaiveBayesSpam(features)
 
     while True:
-        #test_head = input('Input test head:')
-        test_head = 'trec/trec07p'
+        test_head = input('Input test head:')
         if test_head == 'q':
             return
-        #test_level = input('Input test level:')
-        test_level = 'full'
+        test_level = input('Input test level:')
         print('Testing...\n')
         cases = nbs.testlize(test_head + '/' + test_level + '/index')
+        #print(cases)
         total = 0
         accurate = 0
         TP = 0
@@ -82,7 +84,10 @@ def main():
         FP = 0
         FN = 0
         for case in cases:
-            res = nbs.classification(test_head + case[1])
+            if test_head == "trec/train":
+                res = nbs.classification(case[1])
+            else:
+                res = nbs.classification(test_head + case[1])
             if res[0]:
                 total += 1
                 if res[1] == True and (case[0]).lower() == 'ham':
@@ -95,20 +100,9 @@ def main():
                     FP += 1
                 elif res[1] == False and (case[0]).lower() == 'ham':
                     FN += 1
-                if total % 100 == 0:
-                    print(total)
-                if total > 16000:
-                    break
         acc_rate = float(accurate / total * 100)
-        recall = TP / (TP + FN)
-        precision = TP / (TP + FP)
-        f1 = 2 * recall * precision / (recall + precision)
         print('Tested ' + str(total) + ' cases.')
         print('Test result: accuracy = ' + str(acc_rate) + '%')
-        print('             precision = ' + str(precision))
-        print('             recall = ' + str(recall))
-        print('             f1 = ' + str(f1))
-        break
 
 
 if __name__ == '__main__':

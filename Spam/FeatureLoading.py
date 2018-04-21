@@ -41,7 +41,12 @@ class Features:
 
     def taglize(self):
         index_f = open(self.index_path, 'r')
-        corpus = [tuple((line.split('\n'))[0].split(' ..'))
+        print(self.index_path[0:11])
+        if self.index_path[0:11] == "trec/train":
+            corpus = [tuple((line.split('\n'))[0].split(' '))
+                  for line in index_f]
+        else:
+            corpus = [tuple((line.split('\n'))[0].split(' ..'))
                   for line in index_f]
         index_f.close()
         return corpus
@@ -63,8 +68,12 @@ class Features:
 
     def prepare(self, head, corpus):
         for (tag, email) in corpus:
-            if os.path.exists(head + email):
-                tokens = self.tokenlize(head + email)
+            if head == "trec/train":
+                path = email
+            else:
+                path = head + email
+            if os.path.exists(path):
+                tokens = self.tokenlize(path)
                 if tokens[1]:
                     if tag.lower() == 'ham':
                         self.num_ham += 1
@@ -115,8 +124,12 @@ class Features:
             feature_column[key] = np.array([])
         counter = 0
         for (tag, email) in corpus:
-            if os.path.exists(head + email):
-                tokens = self.tokenlize(head + email)
+            if head == "trec/train":
+                path = email
+            else:
+                path = head + email
+            if os.path.exists(path):
+                tokens = self.tokenlize(path)
                 if tokens[1]:
                     if tag.lower() == 'ham':
                         label_vector = np.hstack([label_vector, 0])
