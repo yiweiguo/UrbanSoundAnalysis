@@ -87,7 +87,7 @@ def main():
         key_string = "String" + str(ind)
         columns.append(tf.feature_column.numeric_column(key=key_string))
     classifier = tf.estimator.DNNClassifier(feature_columns=columns,
-                                                 hidden_units=[2000, 500], n_classes=2)
+                                                 hidden_units=[20, 20, 10], n_classes=2)
     #print(len(columns))
     #print(features.label_vector)
     classifier.train(input_fn=lambda:DNN_input_fn(features.feature_vector, features.label_vector, 100), steps=1000)
