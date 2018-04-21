@@ -41,10 +41,11 @@ class Features:
 
     def taglize(self):
         index_f = open(self.index_path, 'r')
-        print(self.index_path[0:11])
-        if self.index_path[0:11] == "trec/train":
+        print(self.index_path[0:10])
+        if self.index_path[0:10] == "trec/train":
             corpus = [tuple((line.split('\n'))[0].split(' '))
                   for line in index_f]
+            #print(corpus)
         else:
             corpus = [tuple((line.split('\n'))[0].split(' ..'))
                   for line in index_f]
