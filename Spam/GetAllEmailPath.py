@@ -80,10 +80,25 @@ def create_3000_even():
     fd_3.close()
     fd.close()
 
+def create_5000_test(super_path):
+    target_path = super_path + "/test/index"
+    open_path = super_path + "/full/index"
+    fd_full = open(open_path, "r")
+    lines = fd_full.readlines()
+    random_lines = random.sample(lines, 5000)
+    fd_write = open(target_path, "w")
+    for random_line in random_lines:
+        fd_write.write(random_line)
+    fd_full.close()
+    fd_write.close()
+
 def main():
     #load_all_data()
     #create_3000()
-    create_3000_even()
+    #create_3000_even()
+    create_5000_test("trec/trec05p-1")
+    create_5000_test("trec/trec06p")
+    create_5000_test("trec/trec07p")
 
 if __name__ == "__main__":
     main()
