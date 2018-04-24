@@ -2,13 +2,14 @@ import os
 import numpy as np
 from FeatureLoading import Features
 from sklearn.svm import SVC
+from sklearn.metrics import precision_recall_curve
+import matplotlib.pyplot as plt
 
 class SVM(object):
 
     def __init__(self, features):
         self.features = features
-        self.svm_model = SVC(C=1, gamma="auto")
-
+        self.svm_model = SVC(C=10, gamma="auto")
 
     def testlize(self, test_dir):
         index_f = open(test_dir, 'r')
@@ -17,14 +18,24 @@ class SVM(object):
         index_f.close()
         return corpus
 
-
     def train(self, features, labels, feature_test, labels_test):
 
         self.svm_model.fit(features, labels)
-        #predicted = self.svm_model.predict(feature_test)
         accuracy = self.svm_model.score(feature_test, labels_test)
+        #result = np.equal(predicted, labels_test)
+        test_score = self.svm_model.decision_function(feature_test)
         print("The accuracy is " + str(accuracy) + '.\n')
+        precision, recall, _ = precision_recall_curve(labels_test, test_score)
+        plt.step(recall, precision, color='b', alpha=0.2,
+                 where='post')
+        plt.fill_between(recall, precision, step='post', alpha=0.2,
+                         color='b')
 
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title('2-class Precision-Recall curve')
 
     def load_test_data(self, super_path, corpus):
         test_class_vector = np.array([])
